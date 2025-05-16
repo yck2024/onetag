@@ -4,79 +4,179 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>My Homepage</title>
-
   <!-- CRITEO Loader File -->
   <script type="text/javascript" src="//dynamic.criteo.com/js/ld/ld.js?a=75563" async="true"></script>
-
   <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      margin: 0;
+      padding: 20px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    
+    .container {
+      margin-top: 2rem;
+    }
+    
     #cookie-banner {
-      background: #eee;
+      background: #f8f8f8;
       padding: 1rem;
       position: fixed;
       bottom: 0;
+      left: 0;
       width: 100%;
       font-size: 14px;
       box-shadow: 0 -1px 5px rgba(0,0,0,0.2);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 1000;
     }
+    
     #cookie-banner button {
-      margin-left: 10px;
+      background: #4285f4;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
     }
+    
     #kw-input {
-      margin-top: 1rem;
+      margin-top: 1.5rem;
+      padding: 1rem;
+      background: #f5f5f5;
+      border-radius: 4px;
+    }
+    
+    #kw-input input {
+      padding: 8px;
+      margin-right: 10px;
+      width: 250px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    
+    #kw-input button {
+      background: #4285f4;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    
+    #notification {
+      display: none;
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #4caf50;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 4px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      transition: opacity 0.5s;
+      z-index: 1000;
+    }
+    
+    #notification.show {
+      display: block;
+      animation: fadeInOut 3s forwards;
+    }
+    
+    @keyframes fadeInOut {
+      0% { opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { opacity: 0; }
     }
   </style>
 </head>
 <body>
-
-  <h1>Welcome to My Homepage</h1>
-  <p>This is a demo with CRITEO OneTag integration.</p>
-
-  <!-- Keyword Input -->
-  <div id="kw-input">
-    <label for="keyword">Enter keyword (optional):</label>
-    <input type="text" id="keyword" placeholder="Default will be used if blank" />
-    <button onclick="sendCriteoViewHome()">Submit</button>
+  <div class="container">
+    <h1>Welcome to My Homepage</h1>
+    <p>This is a demo with CRITEO OneTag integration.</p>
+    
+    <!-- Keyword Input -->
+    <div id="kw-input">
+      <label for="keyword">Enter keyword (optional):</label>
+      <input type="text" id="keyword" placeholder="Default will be used if blank" />
+      <button onclick="sendCriteoViewHome()">Submit</button>
+    </div>
   </div>
-
+  
+  <!-- Notification Message (replacing alert) -->
+  <div id="notification"></div>
+  
   <!-- Cookie Banner -->
   <div id="cookie-banner">
-    We use Cookies to enhance your experience on our website.
-    By continuing your navigation, you accept the placement and use of Cookies.
-    To learn more, see our <a href="/privacy">privacy policy</a>.
-    <button onclick="document.getElementById('cookie-banner').style.display='none'">x</button>
+    <div>
+      We use Cookies to enhance your experience on our website.
+      By continuing your navigation, you accept the placement and use of Cookies.
+      To learn more, see our <a href="/privacy">privacy policy</a>.
+    </div>
+    <button onclick="acceptCookies()">Accept & Close</button>
   </div>
-
+  
   <!-- CRITEO OneTag: Home Page Tracker -->
   <script type="text/javascript">
     window.criteo_q = window.criteo_q || [];
-
+    
     // Initial base tags
     window.criteo_q.push(
       { event: "setAccount", account: 75563 },
       { event: "setSiteType", type: "d" }, // "d" = desktop
       { event: "setEmail", email: "96cae35ce8a9b0244178bf28e4966c2ce1b8385723a96a6b838858cdd6ca0a1e", hash_method: "sha256" } // 123123 email
     );
-
+    
+    // Show notification instead of alert
+    function showNotification(message) {
+      const notification = document.getElementById('notification');
+      notification.textContent = message;
+      notification.classList.add('show');
+      
+      // Remove notification after 3 seconds
+      setTimeout(() => {
+        notification.classList.remove('show');
+      }, 3000);
+    }
+    
+    // Handle cookie banner
+    function acceptCookies() {
+      document.getElementById('cookie-banner').style.display = 'none';
+      localStorage.setItem('cookiesAccepted', 'true');
+    }
+    
+    // Check if cookies were previously accepted
+    window.addEventListener('DOMContentLoaded', () => {
+      if (localStorage.getItem('cookiesAccepted') === 'true') {
+        document.getElementById('cookie-banner').style.display = 'none';
+      }
+    });
+    
     // Send viewHome with dynamic or default keyword
     function sendCriteoViewHome() {
       const input = document.getElementById('keyword').value.trim();
       const keyword = input || "This is the searched keyword";
-
+      
       window.criteo_q.push(
         { event: "viewHome", test_kw: keyword },
-      { event: "setAccount", account: 75563 },
-      { event: "setSiteType", type: "d" }, // "d" = desktop
-      { event: "setEmail", email: "96cae35ce8a9b0244178bf28e4966c2ce1b8385723a96a6b838858cdd6ca0a1e", hash_method: "sha256" } // 123123 email
-      
+        { event: "setAccount", account: 75563 },
+        { event: "setSiteType", type: "d" },
+        { event: "setEmail", email: "96cae35ce8a9b0244178bf28e4966c2ce1b8385723a96a6b838858cdd6ca0a1e", hash_method: "sha256" }
       );
-      alert("CRITEO tag sent with keyword: " + keyword);
+      
+      // Show notification instead of alert
+      showNotification("CRITEO tag sent with keyword: " + keyword);
     }
-
-    // Optional: Automatically send initial viewHome event on load with default
+    
+    // Send initial viewHome event on load with default
     window.addEventListener("load", () => {
-      sendCriteoViewHome(); // Comment this line if you only want to trigger on user input
+      sendCriteoViewHome();
     });
   </script>
-
 </body>
 </html>
