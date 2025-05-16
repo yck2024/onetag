@@ -62,7 +62,13 @@
       const input = document.getElementById('keyword').value.trim();
       const keyword = input || "This is the searched keyword";
 
-      window.criteo_q.push({ event: "viewHome", test_kw: keyword });
+      window.criteo_q.push(
+        { event: "viewHome", test_kw: keyword },
+      { event: "setAccount", account: 75563 },
+      { event: "setSiteType", type: "d" }, // "d" = desktop
+      { event: "setEmail", email: "96cae35ce8a9b0244178bf28e4966c2ce1b8385723a96a6b838858cdd6ca0a1e", hash_method: "sha256" } // 123123 email
+      
+      );
       alert("CRITEO tag sent with keyword: " + keyword);
     }
 
