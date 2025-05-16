@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Homepage</title>
+
+  <!-- CRITEO Loader File -->
+  <script type="text/javascript" src="//dynamic.criteo.com/js/ld/ld.js?a=75563" async="true"></script>
+
+  <!-- Cookie Consent Banner -->
+  <style>
+    #cookie-banner {
+      background: #eee;
+      padding: 1rem;
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      font-size: 14px;
+      box-shadow: 0 -1px 5px rgba(0,0,0,0.2);
+    }
+    #cookie-banner button {
+      margin-left: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Welcome to My Homepage</h1>
+  <p>This is a demo with CRITEO OneTag integration.</p>
+
+  <!-- Cookie Banner -->
+  <div id="cookie-banner">
+    We use Cookies to enhance your experience on our website.
+    By continuing your navigation, you accept the placement and use of Cookies.
+    To learn more, see our <a href="/privacy">privacy policy</a>.
+    <button onclick="document.getElementById('cookie-banner').style.display='none'">x</button>
+  </div>
+
+  <!-- CRITEO OneTag: Home Page Tracker -->
+  <script type="text/javascript">
+    window.criteo_q = window.criteo_q || [];
+    window.criteo_q.push(
+      { event: "setAccount", account: 75563 },
+      { event: "setSiteType", type: "d" }, // "d" = desktop, use "m" or "t" as appropriate
+      
+      { event: "setEmail", email: "1b5d664dcaaf2f977f...", hash_method: "sha256" },
+      { event: "viewHome", test_kw: "This is the searched keyword" }
+    );
+  </script>
+
+</body>
+</html>
