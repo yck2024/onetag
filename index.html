@@ -15,11 +15,11 @@
       max-width: 800px;
       margin: 0 auto;
     }
-    
+
     .container {
       margin-top: 2rem;
     }
-    
+
     #cookie-banner {
       background: #f8f8f8;
       padding: 1rem;
@@ -34,7 +34,7 @@
       align-items: center;
       z-index: 1000;
     }
-    
+
     #cookie-banner button {
       background: #4285f4;
       color: white;
@@ -43,31 +43,50 @@
       border-radius: 4px;
       cursor: pointer;
     }
-    
-    #kw-input {
+
+    .input-section {
       margin-top: 1.5rem;
       padding: 1rem;
       background: #f5f5f5;
       border-radius: 4px;
     }
-    
-    #kw-input input {
+
+    .input-section label {
+        margin-right: 5px;
+    }
+
+    .input-section input {
       padding: 8px;
       margin-right: 10px;
-      width: 250px;
       border: 1px solid #ddd;
       border-radius: 4px;
     }
+
+    #kw-input input {
+      width: 250px;
+    }
     
-    #kw-input button {
-      background: #4285f4;
+    #setdata-input input {
+        width: 160px;
+    }
+
+    .input-section button {
       color: white;
       border: none;
       padding: 8px 16px;
       border-radius: 4px;
       cursor: pointer;
     }
-    
+
+    #kw-input button {
+        background: #4285f4;
+    }
+
+    #setdata-input button {
+        background: #34a853; /* Green button for distinction */
+    }
+
+
     #notification {
       display: none;
       position: fixed;
@@ -81,12 +100,12 @@
       transition: opacity 0.5s;
       z-index: 1000;
     }
-    
+
     #notification.show {
       display: block;
       animation: fadeInOut 3s forwards;
     }
-    
+
     @keyframes fadeInOut {
       0% { opacity: 0; }
       10% { opacity: 1; }
@@ -99,18 +118,28 @@
   <div class="container">
     <h1>Welcome to My Homepage</h1>
     <p>This is a demo with CRITEO OneTag integration.</p>
-    
+
     <!-- Keyword Input -->
-    <div id="kw-input">
+    <div id="kw-input" class="input-section">
       <label for="keyword">Enter keyword (optional):</label>
       <input type="text" id="keyword" placeholder="Default will be used if blank" />
       <button onclick="sendCriteoViewHome()">Submit</button>
     </div>
+
+    <!-- NEW: setData Input -->
+    <div id="setdata-input" class="input-section">
+      <label for="data-key">Data Key (var1):</label>
+      <input type="text" id="data-key" placeholder="ui_status" />
+      <label for="data-value">Data Value (var2):</label>
+      <input type="text" id="data-value" placeholder="1" />
+      <button onclick="sendCriteoSetData()">Send setData</button>
+    </div>
+
   </div>
-  
+
   <!-- Notification Message (replacing alert) -->
   <div id="notification"></div>
-  
+
   <!-- Cookie Banner -->
   <div id="cookie-banner">
     <div>
@@ -120,59 +149,81 @@
     </div>
     <button onclick="acceptCookies()">Accept & Close</button>
   </div>
-  
+
   <!-- CRITEO OneTag: Home Page Tracker -->
   <script type="text/javascript">
     window.criteo_q = window.criteo_q || [];
-    
+
     // Initial base tags
     window.criteo_q.push(
       { event: "setAccount", account: 75563 },
       { event: "setSiteType", type: "d" }, // "d" = desktop
       { event: "setEmail", email: "96cae35ce8a9b0244178bf28e4966c2ce1b8385723a96a6b838858cdd6ca0a1e", hash_method: "sha256" } // 123123 email
     );
-    
+
     // Show notification instead of alert
     function showNotification(message) {
       const notification = document.getElementById('notification');
       notification.textContent = message;
       notification.classList.add('show');
-      
+
       // Remove notification after 3 seconds
       setTimeout(() => {
         notification.classList.remove('show');
       }, 3000);
     }
-    
+
     // Handle cookie banner
     function acceptCookies() {
       document.getElementById('cookie-banner').style.display = 'none';
       localStorage.setItem('cookiesAccepted', 'true');
     }
-    
+
     // Check if cookies were previously accepted
     window.addEventListener('DOMContentLoaded', () => {
       if (localStorage.getItem('cookiesAccepted') === 'true') {
         document.getElementById('cookie-banner').style.display = 'none';
       }
     });
-    
+
     // Send viewHome with dynamic or default keyword
     function sendCriteoViewHome() {
       const input = document.getElementById('keyword').value.trim();
       const keyword = input || "This is the searched keyword";
-      
+
       window.criteo_q.push(
         { event: "viewHome", test_kw: keyword },
         { event: "setAccount", account: 75563 },
         { event: "setSiteType", type: "d" },
         { event: "setEmail", email: "96cae35ce8a9b0244178bf28e4966c2ce1b8385723a96a6b838858cdd6ca0a1e", hash_method: "sha256" }
       );
-      
+
       // Show notification instead of alert
       showNotification("CRITEO tag sent with keyword: " + keyword);
     }
-    
+
+    // NEW: Send setData event with dynamic key/value
+    function sendCriteoSetData() {
+      const keyInput = document.getElementById('data-key').value.trim();
+      const valueInput = document.getElementById('data-value').value.trim();
+      
+      // Use defaults if inputs are empty
+      const dataKey = keyInput || "ui_status";
+      const dataValue = valueInput || "1";
+      
+      // Create the event object. The key is dynamic using computed property names.
+      const criteoEvent = {
+        event: "setData"
+      };
+      criteoEvent[dataKey] = dataValue;
+      
+      // Push the event to the Criteo queue
+      window.criteo_q.push(criteoEvent);
+      
+      // Show a notification to confirm
+      showNotification(`CRITEO setData event sent: { ${dataKey}: "${dataValue}" }`);
+    }
+
     // Send initial viewHome event on load with default
     window.addEventListener("load", () => {
       // sendCriteoViewHome();
