@@ -1,3 +1,3 @@
-sku-key, feed-price, availability
-"1203-17915278-899393",2256, 1
-"1203-17915278-e962592", 2280, 1
+sku, feed-price, availability
+899393,2256, 1
+e962592, 2280, 1
