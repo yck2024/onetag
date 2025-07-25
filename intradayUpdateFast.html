@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Criteo ViewItem Integration</title>
+  <!-- CRITEO Loader File -->
+  <script type="text/javascript" src="//dynamic.criteo.com/js/ld/ld.js?a=101938" async=""></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      margin: 0;
+      padding: 20px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .container {
+      margin-top: 2rem;
+    }
+
+    #cookie-banner {
+      background: #f8f8f8;
+      padding: 1rem;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      font-size: 14px;
+      box-shadow: 0 -1px 5px rgba(0,0,0,0.2);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    #cookie-banner button {
+      background: #4285f4;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .input-section {
+      margin-top: 1.5rem;
+      padding: 1rem;
+      background: #f5f5f5;
+      border-radius: 4px;
+      border-left: 4px solid #4285f4;
+    }
+
+    .input-section h3 {
+      margin-top: 0;
+      color: #333;
+    }
+
+    .input-section label {
+      margin-right: 5px;
+      display: inline-block;
+      min-width: 120px;
+      font-weight: bold;
+    }
+
+    .input-section input {
+      padding: 8px;
+      margin-right: 10px;
+      margin-bottom: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      width: 200px;
+    }
+
+    .input-section button {
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      margin-top: 10px;
+    }
+
+    #manual-input button {
+      background: #4285f4;
+    }
+
+    #csv-input {
+      border-left-color: #34a853;
+    }
+
+    #csv-input button {
+      background: #34a853;
+    }
+
+    #csv-input input[type="file"] {
+      width: auto;
+      padding: 5px;
+      border: 2px dashed #34a853;
+      background: white;
+    }
+
+    #notification {
+      display: none;
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #4caf50;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 4px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      transition: opacity 0.5s;
+      z-index: 1000;
+      max-width: 300px;
+    }
+
+    #notification.show {
+      display: block;
+      animation: fadeInOut 4s forwards;
+    }
+
+    #notification.error {
+      background: #f44336;
+    }
+
+    @keyframes fadeInOut {
+      0% { opacity: 0; }
+      15% { opacity: 1; }
+      85% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    .progress-container {
+      margin-top: 10px;
+      display: none;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 20px;
+      background-color: #f0f0f0;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background-color: #4caf50;
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    .progress-text {
+      text-align: center;
+      margin-top: 5px;
+      font-size: 14px;
+      color: #666;
+    }
+
+    .input-row {
+      margin-bottom: 10px;
+    }
+
+    .csv-info {
+      background: #e8f5e8;
+      padding: 10px;
+      border-radius: 4px;
+      margin-top: 10px;
+      font-size: 13px;
+      color: #2d5a2d;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Criteo ViewItem Integration</h1>
+    <p>This demo integrates with Criteo OneTag for viewItem events. You can send individual events or batch process via CSV file.</p>
+
+    <!-- Manual Input Section -->
+    <div id="manual-input" class="input-section">
+      <h3>Manual Single Event</h3>
+      <div class="input-row">
+        <label for="item-id">Item ID:</label>
+        <input type="text" id="item-id" placeholder="1203-17915278-899393" />
+      </div>
+      <div class="input-row">
+        <label for="item-price">Price:</label>
+        <input type="text" id="item-price" placeholder="730" />
+      </div>
+      <div class="input-row">
+        <label for="availability">Availability:</label>
+        <input type="text" id="availability" placeholder="1 (in stock) or 0 (out of stock)" />
+      </div>
+      <button onclick="sendCriteoViewItem()">Send ViewItem Event</button>
+    </div>
+
+    <!-- CSV Upload Section -->
+    <div id="csv-input" class="input-section">
+      <h3>CSV Batch Processing</h3>
+      <div class="input-row">
+        <label for="csv-file">Upload CSV:</label>
+        <input type="file" id="csv-file" accept=".csv" />
+      </div>
+      <button onclick="processCsvFile()">Process CSV File</button>
+      
+      <div class="csv-info">
+        <strong>CSV Format:</strong><br>
+        sku, feed-price, availability<br>
+        899393, 730, 1<br>
+        899394, 650, 0
+      </div>
+
+      <div class="progress-container" id="progress-container">
+        <div class="progress-bar">
+          <div class="progress-fill" id="progress-fill"></div>
+        </div>
+        <div class="progress-text" id="progress-text">Processing: 0 / 0</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Notification Message -->
+  <div id="notification"></div>
+
+  <!-- Cookie Banner -->
+  <div id="cookie-banner">
+    <div>
+      We use Cookies to enhance your experience on our website.
+      By continuing your navigation, you accept the placement and use of Cookies.
+      To learn more, see our <a href="/privacy">privacy policy</a>.
+    </div>
+    <button onclick="acceptCookies()">Accept & Close</button>
+  </div>
+
+  <!-- CRITEO OneTag Script -->
+  <script type="text/javascript">
+    window.criteo_q = window.criteo_q || [];
+
+    // Initial base tags
+    window.criteo_q.push(
+      { event: "setAccount", account: 101938 },
+      { event: "setRetailerVisitorId", id: "e1cf81d1.633f71f430beb" },
+      { event: "setSiteType", type: "d" }
+    );
+
+    // Show notification instead of alert
+    function showNotification(message, isError = false) {
+      const notification = document.getElementById('notification');
+      notification.textContent = message;
+      notification.className = isError ? 'show error' : 'show';
+
+      // Remove notification after 4 seconds
+      setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => {
+          notification.classList.remove('error');
+        }, 500);
+      }, 4000);
+    }
+
+    // Handle cookie banner
+    function acceptCookies() {
+      document.getElementById('cookie-banner').style.display = 'none';
+      // Using a simple variable instead of localStorage since it's not supported
+      window.cookiesAccepted = true;
+    }
+
+    // Check if cookies were previously accepted
+    window.addEventListener('DOMContentLoaded', () => {
+      if (window.cookiesAccepted) {
+        document.getElementById('cookie-banner').style.display = 'none';
+      }
+    });
+
+    // Send viewItem with dynamic parameters
+    function sendCriteoViewItem(itemId = null, price = null, availability = null) {
+      // Get values from inputs if not provided as parameters
+      const finalItemId = itemId || document.getElementById('item-id').value.trim() || "default-item-id";
+      const finalPrice = price || document.getElementById('item-price').value.trim() || "0";
+      const finalAvailability = availability || document.getElementById('availability').value.trim() || "1";
+
+      window.criteo_q.push({
+        event: "viewItem",
+        page_id: "viewItemSoloelDesktop",
+        item: finalItemId,
+        price: finalPrice,
+        availability: finalAvailability
+      });
+
+      // Show notification
+      showNotification(`ViewItem event sent: ${finalItemId} - $${finalPrice} - Stock: ${finalAvailability}`);
+    }
+
+    // Process CSV file
+    function processCsvFile() {
+      const fileInput = document.getElementById('csv-file');
+      const file = fileInput.files[0];
+
+      if (!file) {
+        showNotification('Please select a CSV file first', true);
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const csv = e.target.result;
+        const lines = csv.split('\n').filter(line => line.trim());
+        
+        // Skip header row if it exists
+        const dataLines = lines.slice(1).filter(line => line.trim());
+        
+        if (dataLines.length === 0) {
+          showNotification('No data found in CSV file', true);
+          return;
+        }
+
+        processCsvData(dataLines);
+      };
+
+      reader.readAsText(file);
+    }
+
+    // Process CSV data with 2 calls per second (500ms interval)
+    function processCsvData(dataLines) {
+      const progressContainer = document.getElementById('progress-container');
+      const progressFill = document.getElementById('progress-fill');
+      const progressText = document.getElementById('progress-text');
+      
+      progressContainer.style.display = 'block';
+      
+      let currentIndex = 0;
+      const totalItems = dataLines.length;
+      
+      const processNextItem = () => {
+        if (currentIndex >= totalItems) {
+          showNotification(`Batch processing completed! ${totalItems} items processed.`);
+          progressContainer.style.display = 'none';
+          return;
+        }
+
+        const line = dataLines[currentIndex].trim();
+        const parts = line.split(',').map(part => part.trim());
+        
+        if (parts.length >= 3) {
+          const [itemId, price, availability] = parts;
+          sendCriteoViewItem(itemId, price, availability);
+        } else {
+          console.warn(`Skipping invalid line: ${line}`);
+        }
+
+        currentIndex++;
+        
+        // Update progress
+        const progressPercent = (currentIndex / totalItems) * 100;
+        progressFill.style.width = progressPercent + '%';
+        progressText.textContent = `Processing: ${currentIndex} / ${totalItems}`;
+        
+        // Schedule next item (10 calls per second = 100ms interval)
+        setTimeout(processNextItem, 100);
+      };
+
+      // Start processing
+      processNextItem();
+    }
+
+    // Optional: Send initial event on load
+    window.addEventListener("load", () => {
+      // Uncomment if you want to send an initial event
+      // sendCriteoViewItem();
+    });
+  </script>
+</body>
+</html>
